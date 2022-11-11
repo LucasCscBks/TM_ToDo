@@ -2,13 +2,17 @@ fn main() {
     loop {
         println!("Olá deseja adicionar um novo ToDo?");
         println!("[sim/nao]");
-        let mut ask: String = input();
+        let ask: String = input();
         if ask == "sim" {
             println!("Digite um novo ToDo abaixo:");
             let todo: String = input();
-            println!("{} // Adicionado com sucesso!", todo);
+            println!("     ");
+            println!("{} // Adicionado com sucesso! //", todo);
         } else if ask == "nao" {
-            println!("Encerrando programa 3...2...1");
+            println!("Encerrando programa em");
+            println!("3");
+            println!("2");
+            println!("1");
             break
         }
     }
