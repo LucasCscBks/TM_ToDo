@@ -2,10 +2,10 @@ fn main() {
     loop {
         println!("Olá deseja adicionar um novo ToDo?");
         println!("[sim/nao]");
-        let ask: String = input();
+        let ask = input();
         if ask == "sim" {
             println!("Digite um novo ToDo abaixo:");
-            let todo: String = input();
+            let todo= input();
             println!("     ");
             println!("{} // Adicionado com sucesso! //", todo);
         } else if ask == "nao" {
