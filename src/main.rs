@@ -5,7 +5,7 @@ fn main() {
         let ask = input();
         if ask == "sim" {
             println!("Digite um novo ToDo abaixo:");
-            let todo= input();
+            let todo = input();
             println!("     ");
             println!("{} // Adicionado com sucesso! //", todo);
         } else if ask == "nao" {
