@@ -39,12 +39,12 @@ impl Terminal {
             println!("Digite o ToDo que deseja criar: ");
             let todo_res = self.input();
             print!("Todo adicionado 👍 : ");
-            let todo: Todo = Todo::new(todo_res);
-            return todo
+            let todo = Todo::new(todo_res);
+            todo
         } else {
             println!("Você digitou: {}" , res);
             println!("Encerrando ToDo! 💤");
-            std::process::exit(0)
+            std::process::exit(0);
         }
         
     }
