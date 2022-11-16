@@ -4,8 +4,10 @@ struct Todo {
 }
 
 impl Todo {
-    fn new_todo(message: String) -> Self{
-        Todo::new_todo(message)
+    fn new(message: String) -> Self{
+        Todo {
+            message
+        }
     }
 }
 use std::io::{Stdin, Stdout, Write};
@@ -30,20 +32,21 @@ impl Terminal {
     }
 
     fn ask_for_new_todo(&mut self) -> Todo {
-        println!("Olá deseja adicionar um novo ToDo?");
-        println!("[sim/nao]");
+        println!("Olá deseja adicionar um novo ToDo? (Digite 'sim' para adicionar) ");
+        
         let res = self.input();
-        if res == "nao" {
-            println!("Encerrando ToDo! 💤");
-            std::process::exit(0)
-        };
-        if res == "sim" {
+        if res.to_lowercase() == "sim" {
             println!("Digite o ToDo que deseja criar: ");
             let todo_res = self.input();
-            Todo {message: "Todo adicionado 👍 : ".to_string() + &todo_res}
+            print!("Todo adicionado 👍 : ");
+            let todo: Todo = Todo::new(todo_res);
+            return todo
         } else {
-            Todo {message: "❌ Alternativa inexistente!! Digite sim ou nao. ❌".to_string()}
+            println!("Você digitou: {}" , res);
+            println!("Encerrando ToDo! 💤");
+            std::process::exit(0)
         }
+        
     }
 
     fn show_todo(&mut self, todo: &Todo) {
