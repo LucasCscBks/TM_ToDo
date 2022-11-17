@@ -1,11 +1,13 @@
 #[derive(Debug, Clone)]
 struct Todo {
-    message: String,
+    message: String
 }
 
 impl Todo {
-    fn new(message: String) -> Self {
-        Todo { message }
+    fn new(message: String) -> Self{
+        Todo {
+            message
+        }
     }
 }
 use std::io::{Stdin, Stdout, Write};
@@ -19,7 +21,7 @@ impl Terminal {
     fn new() -> Self {
         Terminal {
             stdin: std::io::stdin(),
-            stdout: std::io::stdout(),
+            stdout: std::io::stdout()
         }
     }
 
@@ -39,10 +41,11 @@ impl Terminal {
             print!("Todo adicionado 👍 : ");
             Todo::new(todo_res)
         } else {
-            println!("Você digitou: {}", res);
+            println!("Você digitou: {}" , res);
             println!("Encerrando ToDo! 💤");
             std::process::exit(0);
         }
+
     }
 
     fn show_todo(&mut self, todo: &Todo) {
