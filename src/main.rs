@@ -1,26 +1,59 @@
-fn main() {
-    loop {
-        println!("Olá deseja adicionar um novo ToDo?");
-        println!("[sim/nao]");
-        let ask = input();
-        if ask == "sim" {
-            println!("Digite um novo ToDo abaixo:");
-            let todo = input();
-            println!("     ");
-            println!("{} // Adicionado com sucesso! //", todo);
-        } else if ask == "nao" {
-            println!("Encerrando programa em");
-            println!("3");
-            println!("2");
-            println!("1");
-            break
-        }
+#[derive(Debug, Clone)]
+struct Todo {
+    message: String,
+}
+
+impl Todo {
+    fn new(message: String) -> Self {
+        Todo { message }
     }
 }
-    
+use std::io::{Stdin, Stdout, Write};
 
-fn input() -> String {
-    let mut buf = String::new();
-    std::io::stdin().read_line(&mut buf).unwrap();
-    buf.trim().to_string()
+struct Terminal {
+    stdin: Stdin,
+    stdout: Stdout,
+}
+
+impl Terminal {
+    fn new() -> Self {
+        Terminal {
+            stdin: std::io::stdin(),
+            stdout: std::io::stdout(),
+        }
+    }
+
+    fn input(&mut self) -> String {
+        let mut buf: String = String::new();
+        self.stdin.read_line(&mut buf).unwrap();
+        buf.trim().to_string()
+    }
+
+    fn ask_for_new_todo(&mut self) -> Todo {
+        println!("Olá deseja adicionar um novo ToDo? (Digite 'sim' para adicionar) ");
+
+        let res = self.input();
+        if res.to_lowercase() == "sim" {
+            println!("Digite o ToDo que deseja criar: ");
+            let todo_res = self.input();
+            print!("Todo adicionado 👍 : ");
+            Todo::new(todo_res)
+        } else {
+            println!("Você digitou: {}", res);
+            println!("Encerrando ToDo! 💤");
+            std::process::exit(0);
+        }
+    }
+
+    fn show_todo(&mut self, todo: &Todo) {
+        writeln!(self.stdout, "{}", todo.message).unwrap();
+    }
+}
+
+fn main() {
+    loop {
+        let mut terminal = Terminal::new();
+        let todo = terminal.ask_for_new_todo();
+        terminal.show_todo(&todo);
+    }
 }
