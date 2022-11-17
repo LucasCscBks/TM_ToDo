@@ -39,8 +39,7 @@ impl Terminal {
             println!("Digite o ToDo que deseja criar: ");
             let todo_res = self.input();
             print!("Todo adicionado 👍 : ");
-            let todo = Todo::new(todo_res);
-            todo
+            Todo::new(todo_res)
         } else {
             println!("Você digitou: {}" , res);
             println!("Encerrando ToDo! 💤");
