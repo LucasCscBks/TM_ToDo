@@ -25,12 +25,16 @@ impl Terminal {
 
     fn input(&mut self) -> String {
         let mut buf: String = String::new();
-        self.stdin.read_line(&mut buf).unwrap();
+        match self.stdin.read_line(&mut buf) {
+            Ok(_) => buf.trim().to_string(),
+            Err(error) => error.to_string()
+        };
         buf.trim().to_string()
     }
 
     fn ask_for_new_todo(&mut self) -> Todo {
-        println!("Olá deseja adicionar um novo ToDo? (Digite 'sim' para adicionar) ");
+        println!("Olá, deseja adicionar um novo ToDo? ");
+        println!("[Sim/Nao]");
 
         let res = self.input();
         if res.to_lowercase() == "sim" {
@@ -45,8 +49,11 @@ impl Terminal {
         }
     }
 
-    fn show_todo(&mut self, todo: &Todo) {
-        writeln!(self.stdout, "{}", todo.message).unwrap();
+    fn show_todo(&mut self, todo: &Todo) -> Result<(), std::io::Error> {
+        match writeln!(self.stdout, "{}", todo.message) {
+            Ok(_) => writeln!(self.stdout, "{}", todo.message),
+            Err(error) => writeln!(self.stdout, "{}", error)
+        }
     }
 }
 
