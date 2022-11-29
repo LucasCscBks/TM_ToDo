@@ -14,6 +14,7 @@ struct Terminal {
     stdin: Stdin,
     stdout: Stdout,
 }
+#[derive(Debug)]
 enum TerminalError {
     Stdout(String),
     Stdin(String),
@@ -71,5 +72,7 @@ fn loop_todo() -> Result<(), TerminalError> {
 }
 
 fn main() {
-    loop_todo();
+    if let Err(error) = loop_todo() {
+        eprintln!("Ocorreu um erro: {:?}", error)
+    }
 }
