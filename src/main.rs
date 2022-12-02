@@ -1,3 +1,5 @@
+use std::io::{Stdin, Stdout, Write};
+use std::io;
 #[derive(Debug, Clone)]
 struct Todo {
     message: String,
@@ -8,16 +10,25 @@ impl Todo {
         Todo { message }
     }
 }
-use std::io::{Stdin, Stdout, Write};
 
 struct Terminal {
     stdin: Stdin,
     stdout: Stdout,
 }
+
 #[derive(Debug)]
 enum TerminalError {
-    Stdout(String),
-    Stdin(String),
+    Stdout(io::Error),
+    Stdin(io::Error),
+}
+
+impl TerminalError {
+    fn error_type(self) -> String {
+        match self {
+            Self::Stdin(err) => format!("Erro {}", err),
+            Self::Stdout(err) => format!("Erro {}", err)
+        }
+    }
 }
 
 impl Terminal {
@@ -33,7 +44,7 @@ impl Terminal {
 
         match self.stdin.read_line(&mut buf) {
             Ok(_) => Ok(buf.trim().to_string()),
-            Err(error) => Err(TerminalError::Stdin(format!("Erro {:?}", error)))
+            Err(error) => Err(TerminalError::Stdin(error))
         }
     }
 
@@ -58,8 +69,12 @@ impl Terminal {
         let resolve = writeln!(self.stdout, "{}", todo.message);
         match resolve {
             Ok(resolve) => Ok(resolve),
-            error => Err(TerminalError::Stdout(format!("Erro {:?}", error)))
+            Err(error) => Err(TerminalError::Stdout(error))
         }
+    }
+
+    fn show_error(&mut self, error: TerminalError) {
+        eprintln!("{}", error.error_type());
     }
 }
 
@@ -72,7 +87,8 @@ fn loop_todo() -> Result<(), TerminalError> {
 }
 
 fn main() {
+    let mut terminal = Terminal::new();
     if let Err(error) = loop_todo() {
-        eprintln!("Ocorreu um erro: {:?}", error)
+        terminal.show_error(error)
     }
 }
