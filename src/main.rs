@@ -1,3 +1,5 @@
+use std::io::{Stdin, Stdout, Write};
+use std::io;
 #[derive(Debug, Clone)]
 struct Todo {
     message: String,
@@ -8,11 +10,25 @@ impl Todo {
         Todo { message }
     }
 }
-use std::io::{Stdin, Stdout, Write};
 
 struct Terminal {
     stdin: Stdin,
     stdout: Stdout,
+}
+
+#[derive(Debug)]
+enum TerminalError {
+    Stdout(io::Error),
+    Stdin(io::Error),
+}
+
+impl TerminalError {
+    fn error_type(self) -> String {
+        match self {
+            Self::Stdin(err) => format!("Erro {}", err),
+            Self::Stdout(err) => format!("Erro {}", err)
+        }
+    }
 }
 
 impl Terminal {
@@ -23,21 +39,25 @@ impl Terminal {
         }
     }
 
-    fn input(&mut self) -> String {
+    fn input(&mut self) -> Result<String, TerminalError> {
         let mut buf: String = String::new();
-        self.stdin.read_line(&mut buf).unwrap();
-        buf.trim().to_string()
+
+        match self.stdin.read_line(&mut buf) {
+            Ok(_) => Ok(buf.trim().to_string()),
+            Err(error) => Err(TerminalError::Stdin(error))
+        }
     }
 
-    fn ask_for_new_todo(&mut self) -> Todo {
-        println!("Olá deseja adicionar um novo ToDo? (Digite 'sim' para adicionar) ");
+    fn ask_for_new_todo(&mut self) -> Result<Todo, TerminalError> {
+        println!("Olá, deseja adicionar um novo ToDo? ");
+        println!("[Sim/Nao]");
 
-        let res = self.input();
+        let res = self.input()?;
         if res.to_lowercase() == "sim" {
             println!("Digite o ToDo que deseja criar: ");
-            let todo_res = self.input();
+            let todo_res = self.input()?;
             print!("Todo adicionado 👍 : ");
-            Todo::new(todo_res)
+            Ok(Todo::new(todo_res))
         } else {
             println!("Você digitou: {}", res);
             println!("Encerrando ToDo! 💤");
@@ -45,15 +65,30 @@ impl Terminal {
         }
     }
 
-    fn show_todo(&mut self, todo: &Todo) {
-        writeln!(self.stdout, "{}", todo.message).unwrap();
+    fn show_todo(&mut self, todo: &Todo) -> Result<(), TerminalError> {
+        let resolve = writeln!(self.stdout, "{}", todo.message);
+        match resolve {
+            Ok(resolve) => Ok(resolve),
+            Err(error) => Err(TerminalError::Stdout(error))
+        }
+    }
+
+    fn show_error(&mut self, error: TerminalError) {
+        eprintln!("{}", error.error_type());
+    }
+}
+
+fn loop_todo() -> Result<(), TerminalError> {
+    loop {   
+        let mut terminal = Terminal::new();
+        let todo = terminal.ask_for_new_todo()?;
+        terminal.show_todo(&todo)?;
     }
 }
 
 fn main() {
-    loop {
-        let mut terminal = Terminal::new();
-        let todo = terminal.ask_for_new_todo();
-        terminal.show_todo(&todo);
+    let mut terminal = Terminal::new();
+    if let Err(error) = loop_todo() {
+        terminal.show_error(error)
     }
 }
