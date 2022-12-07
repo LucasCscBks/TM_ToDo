@@ -67,10 +67,7 @@ impl Terminal {
 
     fn show_todo(&mut self, todo: &Todo) -> Result<(), TerminalError> {
         let resolve = writeln!(self.stdout, "{}", todo.message);
-        match resolve {
-            Ok(resolve) => Ok(resolve),
-            Err(error) => Err(TerminalError::Stdout(error))
-        }
+        resolve.map_err(TerminalError::Stdout)
     }
 
     fn show_error(&mut self, error: TerminalError) {
