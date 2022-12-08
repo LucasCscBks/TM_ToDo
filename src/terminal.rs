@@ -1,6 +1,7 @@
 use std::io::{Stdin, Stdout, Write};
 use crate::terminalerror::TerminalError;
 use crate::todo::Todo;
+use console::style;
 
 pub struct Terminal {
     stdin: Stdin,
@@ -31,7 +32,8 @@ impl Terminal {
             return Ok(res)
         } else {
             loop {
-                println!("Comando errado, digite Sim ou Nao!");
+                println!("{}", style("COMANDO ERRADO").red());
+                println!("Digite {} ou {}", style("Sim").blue().bold(), style("Nao").yellow().bold());
                 res = self.input()?;
                 if res.to_lowercase() == "sim" || res.to_lowercase() == "nao" {
                     break;
@@ -42,24 +44,23 @@ impl Terminal {
     }
 
     fn ask_for_new_todo(&mut self) -> Result<Todo, TerminalError> {
-        println!("Olá, deseja adicionar um novo ToDo? ");
-        println!("[Sim/Nao]");
+        println!("{}", style("Olá, deseja adicionar um novo ToDo? ").green());
+        println!("[{}|{}]", style("Sim").bold().blue(), style("Nao").bold().yellow());
 
         let res = self.receive_option()?;
         if res.to_lowercase() == "sim" {
-            println!("Digite o ToDo que deseja criar: ");
+            println!("{}", style("Digite o ToDo que deseja criar: ").cyan());
             let todo_res = self.input()?;
-            print!("Todo adicionado 👍 : ");
+            print!("{}", style("TODO ADICIONADO 👍 : ").bold().magenta());
             Ok(Todo::new(todo_res))
         } else {
-            println!("Você digitou: {}", res);
-            println!("Encerrando ToDo! 💤");
+            println!("{}", style("Encerrando ToDo! 💤").underlined().bold());
             std::process::exit(0);
         }
     }
 
     fn show_todo(&mut self, todo: &Todo) -> Result<(), TerminalError> {
-        let resolve = writeln!(self.stdout, "{}", todo.message);
+        let resolve = writeln!(self.stdout, "{}", style(&todo.message).italic().underlined().color256(105));
         resolve.map_err(TerminalError::Stdout)
     }
 
