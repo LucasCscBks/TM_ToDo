@@ -26,20 +26,12 @@ impl Terminal {
     }
     fn receive_option(&mut self) -> Result<String, TerminalError> {
         let mut res = self.input()?;
-        if res.to_lowercase() == "sim" {
-            return Ok(res)
-        } else if res.to_lowercase() == "nao" {
-            return Ok(res)
-        } else {
-            loop {
-                println!("{}", style("COMANDO ERRADO").red());
-                println!("Digite {} ou {}", style("Sim").blue().bold(), style("Nao").yellow().bold());
-                res = self.input()?;
-                if res.to_lowercase() == "sim" || res.to_lowercase() == "nao" {
-                    break;
-                }
-            }
+        while res.to_lowercase() != "sim" && res.to_lowercase() != "nao" {
+            println!("{}", style("COMANDO ERRADO").red());
+            println!("Digite {} ou {}", style("Sim").blue().bold(), style("Nao").yellow().bold());
+            res = self.input()?;
         }
+        
         Ok(res)
     }
 
