@@ -25,26 +25,21 @@ impl Terminal {
         }
     }
     fn should_ask_for_new_todo(&mut self) -> Result<bool, TerminalError> {
-        let mut res = self.input()?;
-        while res.to_lowercase() != "sim" && res.to_lowercase() != "nao" {
+        let mut res = self.input()?.to_lowercase();
+
+        while !matches!(&*res, "sim" | "nao") {
             println!("{}", style("COMANDO ERRADO").red());
             println!("Digite {} ou {}", style("Sim").blue().bold(), style("Nao").yellow().bold());
-            res = self.input()?;
+            res = self.input()?.to_lowercase();
         }
-        if res.to_lowercase() == "sim" {
-            Ok(true)
-        } else {
-            Ok(false)
-        }
-        
+        Ok(res == "sim")
     }
 
     fn ask_for_new_todo(&mut self) -> Result<Option<Todo>, TerminalError> {
         println!("{}", style("Olá, deseja adicionar um novo ToDo? ").green());
         println!("[{}|{}]", style("Sim").bold().blue(), style("Nao").bold().yellow());
 
-        let res = self.should_ask_for_new_todo()?;
-        if res {
+        if self.should_ask_for_new_todo()? {
             println!("{}", style("Digite o ToDo que deseja criar: ").cyan());
             let todo_res = self.input()?;
             print!("{}", style("TODO ADICIONADO 👍 : ").bold().magenta());
@@ -71,8 +66,8 @@ pub fn loop_todo() -> Result<(), TerminalError> {
         let todo = terminal.ask_for_new_todo()?;
         match todo {
             Some(todo) => terminal.show_todo(&todo)?,
-            None => break
+            None => return Ok(())
         }
     }
-    Ok(())
+
 }
