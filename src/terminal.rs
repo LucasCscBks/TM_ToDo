@@ -24,30 +24,34 @@ impl Terminal {
             Err(error) => Err(TerminalError::Stdin(error))
         }
     }
-    fn receive_option(&mut self) -> Result<String, TerminalError> {
+    fn should_ask_for_new_todo(&mut self) -> Result<bool, TerminalError> {
         let mut res = self.input()?;
         while res.to_lowercase() != "sim" && res.to_lowercase() != "nao" {
             println!("{}", style("COMANDO ERRADO").red());
             println!("Digite {} ou {}", style("Sim").blue().bold(), style("Nao").yellow().bold());
             res = self.input()?;
         }
+        if res.to_lowercase() == "sim" {
+            Ok(true)
+        } else {
+            Ok(false)
+        }
         
-        Ok(res)
     }
 
-    fn ask_for_new_todo(&mut self) -> Result<Todo, TerminalError> {
+    fn ask_for_new_todo(&mut self) -> Result<Option<Todo>, TerminalError> {
         println!("{}", style("Olá, deseja adicionar um novo ToDo? ").green());
         println!("[{}|{}]", style("Sim").bold().blue(), style("Nao").bold().yellow());
 
-        let res = self.receive_option()?;
-        if res.to_lowercase() == "sim" {
+        let res = self.should_ask_for_new_todo()?;
+        if res {
             println!("{}", style("Digite o ToDo que deseja criar: ").cyan());
             let todo_res = self.input()?;
             print!("{}", style("TODO ADICIONADO 👍 : ").bold().magenta());
-            Ok(Todo::new(todo_res))
+            Ok(Some(Todo::new(todo_res)))
         } else {
             println!("{}", style("Encerrando ToDo! 💤").underlined().bold());
-            std::process::exit(0);
+            Ok(None)
         }
     }
 
@@ -65,6 +69,10 @@ pub fn loop_todo() -> Result<(), TerminalError> {
     loop {   
         let mut terminal = Terminal::new();
         let todo = terminal.ask_for_new_todo()?;
-        terminal.show_todo(&todo)?;
+        match todo {
+            Some(todo) => terminal.show_todo(&todo)?,
+            None => break
+        }
     }
+    Ok(())
 }
