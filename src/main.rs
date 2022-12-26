@@ -1,6 +1,7 @@
 pub mod terminal;
 pub mod todo;
 pub mod terminalerror;
+pub mod todos;
 
 fn main() {
     let mut terminal = terminal::Terminal::new();
