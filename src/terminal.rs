@@ -25,7 +25,18 @@ impl Terminal {
             Err(error) => Err(TerminalError::Stdin(error))
         }
     }
-    fn options_todo(&mut self) -> Result<String, TerminalError> {
+    
+    fn system_options(&mut self) -> Result<String, TerminalError> {
+        println!("{}", style("Bem vindo ao sistema de Todos! Escolha uma opção abaixo: ").green());
+        println!(
+            "[{}|{}|{}|{}|{}]",
+            style("Adicionar").bold().blue(), 
+            style("Listar").bold().yellow(),
+            style("Atualizar").bold().green(),
+            style("Deletar").magenta().bold(),
+            style("Sair").bold().red()
+        );
+
         let mut res = self.input()?.to_lowercase();
 
         while !matches!(&*res, "adicionar" | "listar" | "atualizar" | "sair" | "deletar") {
@@ -43,35 +54,13 @@ impl Terminal {
         Ok(res)
     }
 
-    fn ask_for_new_todo(&mut self) -> Result<Option<Todo>, TerminalError> {
-        println!("{}", style("Bem vindo ao sistema de Todos! Escolha uma opção abaixo: ").green());
-        println!(
-            "[{}|{}|{}|{}|{}]",
-            style("Adicionar").bold().blue(), 
-            style("Listar").bold().yellow(),
-            style("Atualizar").bold().green(),
-            style("Deletar").magenta().bold(),
-            style("Sair").bold().red()
-        );        
+    fn new_todo(&mut self) -> Result<Option<Todo>, TerminalError> {
 
-        let options = self.options_todo()?;
-
-        if options == "adicionar" {
-            println!("{}", style("Digite o ToDo que deseja criar: ").cyan());
-            let todo_res = self.input()?;
-            print!("{}", style("TODO ADICIONADO 👍 : ").bold().magenta());
-            
-            Ok(Some(Todo::new(todo_res)))
-        } else if options == "listar" {
-            Ok(Some(Todo::new("listar".to_string() )))
-        } else if options == "atualizar" {
-            Ok(Some(Todo::new("atualizar".to_string() )))
-        } else if options == "deletar" {
-            Ok(Some(Todo::new("deletar".to_string() )))
-        } else {
-            println!("{}", style("Encerrando ToDo! 💤").underlined().bold());
-            Ok(None)
-        }
+        println!("{}", style("Digite o ToDo que deseja criar: ").cyan());
+        let todo_res = self.input()?;
+        print!("{}", style("TODO ADICIONADO 👍 : ").bold().magenta());
+        
+        Ok(Some(Todo::new(todo_res)))
     }
 
     fn show_todo(&mut self, todo: &Todo) -> Result<(), TerminalError> {
@@ -89,58 +78,63 @@ pub fn loop_todo() -> Result<(), TerminalError> {
     
     loop {   
         let mut terminal = Terminal::new();
-        let todo = terminal.ask_for_new_todo()?;
-        match todo {
-            Some(todo) => {
-                if todo.message != "listar".to_string() && todo.message != "atualizar".to_string() && todo.message != "deletar".to_string() {
-                    todo_collection.add_todo(todo.message.clone());
+        let options = terminal.system_options()?;
+
+        if options == "adicionar" {
+            let todo = terminal.new_todo()?;
+            match todo {
+                Some(todo) => {
+                    todo_collection.add_todo(todo.clone());
                     terminal.show_todo(&todo)?;
-                } else if todo.message == "atualizar".to_string() {
-                    println!("Número do Todo :");
-                    let number_todo = terminal.input()?;
-                    let number = number_todo.parse::<usize>();
-                    match number {
-                        Ok(number) => 
-                            if number > todo_collection.todos.len() || number == 0 {
-                                println!("{}", style("Número de Todo Inválido!").red().bold())
-                            } else {
-                                println!("Novo Todo :");
-                                let todo = terminal.input()?;
-                                todo_collection.todos[number - 1] = Todo::new(todo);
-                                println!("{}" , style("Todo atualizado com Sucesso!!").blue().bold())
-                            }
-                        ,
-                        Err(_) => println!("Erro")
-                    }
-                } else if todo.message == "listar".to_string() {
-                    if todo_collection.todos.len() > 0 {
-                        let mut count = 1;
-                        println!("Minha lista de todos: ");
-                        for i in &todo_collection.todos {
-                            println!("{} : {:?}", count, i.message);
-                            count += 1
-                        }
+                },
+                None => println!("Não foi possível adicionar todo!"),
+            } 
+        } else if options == "listar" {
+            if todo_collection.todos.len() > 0 {
+                let mut count = 1;
+                println!("Minha lista de todos: ");
+                for i in &todo_collection.todos {
+                    println!("{} : {:?}", count, i.message);
+                    count += 1
+                }
+            } else {
+                println!("{}", style("Nenhum todo adicionado ainda!".to_uppercase()).bold().red());
+            }         
+        } else if options == "atualizar" {
+            println!("Número do Todo :");
+            let number_todo = terminal.input()?;
+            let number = number_todo.parse::<usize>();
+            match number {
+                Ok(number) => 
+                    if number > todo_collection.todos.len() || number == 0 {
+                        println!("{}", style("Número de Todo Inválido!").red().bold())
                     } else {
-                        println!("{}", style("Nenhum todo adicionado ainda!".to_uppercase()).bold().red());
-                    }                  
-                } else if todo.message == "deletar".to_string() {
-                    println!("Escolha o Todo que deseja deletar!");
-                    let number_todo = terminal.input()?;
-                    let number = number_todo.parse::<usize>();
-                    match number {
-                        Ok(number) => 
-                            if number > todo_collection.todos.len() || number == 0 {
-                                println!("{}", style("Número de Todo Inválido!").red().bold())
-                            } else {
-                                todo_collection.todos.remove(number - 1);
-                                println!("{}" , style("Todo removido com Sucesso!!").white().bold())
-                            }
-                        ,
-                        Err(_) => println!("Erro")
+                        println!("Novo Todo :");
+                        let todo = terminal.input()?;
+                        todo_collection.todos[number - 1] = Todo::new(todo);
+                        println!("{}" , style("Todo atualizado com Sucesso!!").blue().bold())
                     }
-                }                
-            },
-            None => return Ok(())
+                ,
+                Err(_) => println!("[ERRO] Digite um número e não uma letra!")
+            }
+        } else if options == "deletar" {
+            println!("Escolha o Todo que deseja deletar!");
+            let number_todo = terminal.input()?;
+            let number = number_todo.parse::<usize>();
+            match number {
+                Ok(number) => 
+                    if number > todo_collection.todos.len() || number == 0 {
+                        println!("{}", style("Número de Todo Inválido!").red().bold())
+                    } else {
+                        todo_collection.todos.remove(number - 1);
+                        println!("{}" , style("Todo removido com Sucesso!!").white().bold())
+                    }
+                ,
+                Err(_) => println!("[ERRO] Digite somente números!")
+            }
+        } else {
+            println!("{}", style("Encerrando ToDo! 💤").underlined().bold());
+            return Ok(())
         }
     }
 }

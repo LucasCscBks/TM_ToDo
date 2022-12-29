@@ -11,7 +11,7 @@ impl Todos {
         }
     }
 
-    pub fn add_todo(&mut self, todo: String) {
-        self.todos.push(Todo { message: (todo) });
+    pub fn add_todo(&mut self, todo: Todo) {
+        self.todos.push(todo);
     }
 }
