@@ -4,6 +4,7 @@ use crate::todo::Todo;
 use crate::todos::Todos;
 use console::style;
 use clearscreen::clear;
+use rand::prelude::random;
 
 pub struct Terminal {
     stdin: Stdin,
@@ -111,7 +112,18 @@ pub fn loop_todo() -> Result<(), TerminalError> {
                 } 
             },
             SystemOptions::List => {
-                todo_collection.show_todos()
+                let collection = todo_collection.get_todos();
+                if collection.is_empty() {
+                    println!("{}", style("Nenhum todo adicionado ainda!".to_uppercase()).bold().red());  
+                } else {
+                    let mut count = 1;
+                    println!("{}" , style("Minha lista de todos: ").bold());
+                    for i in collection {
+                        let x: u8 = random();
+                        println!("{} : {:?}", count, style(&i.message.to_uppercase()).color256(x));
+                        count += 1
+                    }      
+                }
             },
             SystemOptions::Update => {
                 println!("{}", style("Número do Todo :").bold().green());
@@ -138,9 +150,16 @@ pub fn loop_todo() -> Result<(), TerminalError> {
                 let number_todo = terminal.input()?;
                 let number = number_todo.parse::<usize>();
                 match number {
-                    Ok(number) => 
-                        todo_collection.remove_todo(number)
-                    ,
+                    Ok(number) => {
+                        let todo = todo_collection.get_todo(number);
+                        match todo {
+                            Some(_todo) => {
+                                todo_collection.remove_todo(number);
+                                println!("{}" , style("Todo removido com Sucesso!!").white().bold())
+                            },
+                            None => println!("{}", style("Número de Todo Inválido!").red().bold())
+                        }
+                    },     
                     Err(_) => println!("[ERRO] Digite somente números!")
             }
             },

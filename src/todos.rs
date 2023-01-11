@@ -1,6 +1,4 @@
 use crate::todo::Todo;
-use console::style;
-use rand::prelude::random;
 
 #[derive(Debug)]
 pub struct Todos {
@@ -23,12 +21,7 @@ impl Todos {
     }
 
     pub fn remove_todo(&mut self, index:usize) {
-        if index > self.todos.len() || index == 0 {
-            println!("{}", style("Número de Todo Inválido!").red().bold())
-        } else {
-            self.todos.remove(index - 1);
-            println!("{}" , style("Todo removido com Sucesso!!").white().bold())
-        }
+        self.todos.remove(index - 1);
     }
 
     pub fn get_todo(&mut self, index:usize) -> Option<&Todo> {
@@ -39,17 +32,8 @@ impl Todos {
         }
     }
 
-    pub fn show_todos(&mut self) {
-        if self.todos.is_empty() {
-            println!("{}", style("Nenhum todo adicionado ainda!".to_uppercase()).bold().red());  
-        } else {
-            let mut count = 1;
-            println!("{}" , style("Minha lista de todos: ").bold());
-            for i in &self.todos {
-                let x: u8 = random();
-                println!("{} : {:?}", count, style(&i.message.to_uppercase()).color256(x));
-                count += 1
-            }      
-        }
+    pub fn get_todos(&mut self) -> Vec<Todo> {
+        self.todos.clone()
     }
+
 }
