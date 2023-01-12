@@ -2,7 +2,7 @@ use std::io::{Stdin, Stdout, Write};
 use crate::terminalerror::TerminalError;
 use crate::todo::Todo;
 use crate::todos::Todos;
-use console::style;
+use console::{style, StyledObject};
 use clearscreen::clear;
 use rand::prelude::random;
 
@@ -90,6 +90,15 @@ impl Terminal {
     pub fn show_error(&mut self, error: TerminalError) {
         eprintln!("{}", error.error_type());
     }
+
+    fn show_message(&mut self, message: StyledObject<String>) {
+        println!("{}", message);
+    }
+
+    fn show_todos(&mut self, index: i32, message: StyledObject<&String>) {
+        println!("{} : {}", index, message);
+    }
+
 }
 
 pub fn loop_todo() -> Result<(), TerminalError> {
@@ -108,25 +117,25 @@ pub fn loop_todo() -> Result<(), TerminalError> {
                         todo_collection.add_todo(todo.clone());
                         terminal.show_todo(&todo)?;
                     },
-                    None => println!("Não foi possível adicionar todo!"),
+                    None => terminal.show_message(style("Não foi possível adicionar todo!".to_uppercase())),
                 } 
             },
             SystemOptions::List => {
                 let collection = todo_collection.get_todos();
                 if collection.is_empty() {
-                    println!("{}", style("Nenhum todo adicionado ainda!".to_uppercase()).bold().red());  
+                    terminal.show_message(style("Nenhum todo adicionado ainda!".to_uppercase()).bold().red())
                 } else {
                     let mut count = 1;
-                    println!("{}" , style("Minha lista de todos: ").bold());
+                    terminal.show_message(style("Minha lista de todos: ".to_string()).bold());
                     for i in collection {
                         let x: u8 = random();
-                        println!("{} : {:?}", count, style(&i.message.to_uppercase()).color256(x));
+                        terminal.show_todos(count, style(&i.message.to_uppercase()).color256(x));
                         count += 1
                     }      
                 }
             },
             SystemOptions::Update => {
-                println!("{}", style("Número do Todo :").bold().green());
+                terminal.show_message(style("Número do Todo :".to_string()).bold().green());
                 let number_todo = terminal.input()?;
                 let number = number_todo.parse::<usize>();
                 match number {
@@ -134,19 +143,19 @@ pub fn loop_todo() -> Result<(), TerminalError> {
                         let todo = todo_collection.get_todo(number);
                         match todo {
                             Some(_todo) => {
-                                println!("{}" , style("Novo Todo :").bold());
+                                terminal.show_message(style("Novo Todo :".to_string()).bold());
                                 let new_todo = terminal.input()?;
                                 todo_collection.update_todo(number, new_todo);
-                                println!("{}" , style("Todo atualizado com Sucesso!!").blue().bold())
+                                terminal.show_message(style("Todo atualizado com Sucesso!!".to_string()).blue().bold())
                             },
-                            None => println!("{}", style("Número de Todo Inválido!").red().bold())
+                            None => terminal.show_message(style("Número de Todo Inválido!".to_string()).red().bold())
                         }
                     },
                     Err(_) => println!("[ERRO] Digite um número e não uma letra!")
                 }
             },
             SystemOptions::Delete => {
-                println!("{}", style("Escolha o Todo que deseja deletar!").bold().yellow());
+                terminal.show_message(style("Escolha o Todo que deseja deletar!".to_string()).bold().yellow());
                 let number_todo = terminal.input()?;
                 let number = number_todo.parse::<usize>();
                 match number {
@@ -155,16 +164,16 @@ pub fn loop_todo() -> Result<(), TerminalError> {
                         match todo {
                             Some(_todo) => {
                                 todo_collection.remove_todo(number);
-                                println!("{}" , style("Todo removido com Sucesso!!").white().bold())
+                                terminal.show_message(style("Todo removido com Sucesso!!".to_string()).white().bold())
                             },
-                            None => println!("{}", style("Número de Todo Inválido!").red().bold())
+                            None => terminal.show_message(style("Número de Todo Inválido!".to_string()).red().bold())
                         }
                     },     
                     Err(_) => println!("[ERRO] Digite somente números!")
             }
             },
             SystemOptions::Exit => {
-                println!("{}", style("ToDo Encerrado! 💤").underlined().bold());
+                terminal.show_message(style("ToDo Encerrado! 💤".to_string()).underlined().bold());
                 return Ok(())
             },
             SystemOptions::Other => return Ok(())
