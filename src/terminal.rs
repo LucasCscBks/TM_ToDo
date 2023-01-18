@@ -91,6 +91,10 @@ impl Terminal {
         eprintln!("{}", error.error_type());
     }
 
+    fn show_error_msg(&mut self, message: StyledObject<String>) {
+        println!("{}", message)
+    }
+
     fn show_message(&mut self, message: StyledObject<String>) {
         println!("{}", message);
     }
@@ -151,7 +155,7 @@ pub fn loop_todo() -> Result<(), TerminalError> {
                             None => terminal.show_message(style("Número de Todo Inválido!".to_string()).red().bold())
                         }
                     },
-                    Err(_) => println!("[ERRO] Digite um número e não uma letra!")
+                    Err(_) => terminal.show_error_msg(style("[ERRO] Digite um número e não uma letra!".to_string().to_uppercase()).red())
                 }
             },
             SystemOptions::Delete => {
@@ -169,7 +173,7 @@ pub fn loop_todo() -> Result<(), TerminalError> {
                             None => terminal.show_message(style("Número de Todo Inválido!".to_string()).red().bold())
                         }
                     },     
-                    Err(_) => println!("[ERRO] Digite somente números!")
+                    Err(_) => terminal.show_error_msg(style("[ERRO] Digite somente números!".to_string().to_uppercase()).red())
             }
             },
             SystemOptions::Exit => {
