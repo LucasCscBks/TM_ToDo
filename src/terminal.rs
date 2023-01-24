@@ -1,10 +1,8 @@
 use std::io::{Stdin, Stdout, Write};
 use crate::terminalerror::TerminalError;
 use crate::todo::Todo;
-use crate::todos::Todos;
 use console::{style, StyledObject};
 use clearscreen::clear;
-use rand::prelude::random;
 
 pub struct Terminal {
     stdin: Stdin,
@@ -20,6 +18,17 @@ pub enum SystemOptions {
     Other
 }
 
+pub trait UserInterface {
+    fn input(&mut self) -> Result<String, TerminalError>;
+    fn system_options(&mut self) -> Result<SystemOptions, TerminalError>;
+    fn new_todo(&mut self) -> Result<Option<Todo>, TerminalError>;
+    fn show_todo(&mut self, todo: &Todo) -> Result<(), TerminalError>;
+    fn show_error(&mut self, error: TerminalError);
+    fn show_error_msg(&mut self, message: StyledObject<String>);
+    fn show_message(&mut self, message: StyledObject<String>);
+    fn show_todos(&mut self, index: i32, message: StyledObject<&String>);
+}
+
 impl Terminal {
     pub fn new() -> Self {
         Terminal {
@@ -27,7 +36,9 @@ impl Terminal {
             stdout: std::io::stdout(),
         }
     }
+}
 
+impl UserInterface for Terminal {
     fn input(&mut self) -> Result<String, TerminalError> {
         let mut buf: String = String::new();
 
@@ -87,7 +98,7 @@ impl Terminal {
         resolve.map_err(TerminalError::Stdout)
     }
 
-    pub fn show_error(&mut self, error: TerminalError) {
+    fn show_error(&mut self, error: TerminalError) {
         eprintln!("{}", error.error_type());
     }
 
@@ -101,86 +112,5 @@ impl Terminal {
 
     fn show_todos(&mut self, index: i32, message: StyledObject<&String>) {
         println!("{} : {}", index, message);
-    }
-
-}
-
-pub fn loop_todo() -> Result<(), TerminalError> {
-    clear().expect("Falhou em limpar a tela");
-    let mut todo_collection = Todos::new();
-    
-    loop {   
-        let mut terminal = Terminal::new();
-        let options = terminal.system_options()?;
-
-        match options {
-            SystemOptions::Add => {
-                let todo = terminal.new_todo()?;
-                match todo {
-                    Some(todo) => {
-                        todo_collection.add_todo(todo.clone());
-                        terminal.show_todo(&todo)?;
-                    },
-                    None => terminal.show_message(style("Não foi possível adicionar todo!".to_uppercase())),
-                } 
-            },
-            SystemOptions::List => {
-                let collection = todo_collection.get_todos();
-                if collection.is_empty() {
-                    terminal.show_message(style("Nenhum todo adicionado ainda!".to_uppercase()).bold().red())
-                } else {
-                    let mut count = 1;
-                    terminal.show_message(style("Minha lista de todos: ".to_string()).bold());
-                    for i in collection {
-                        let x: u8 = random();
-                        terminal.show_todos(count, style(&i.message.to_uppercase()).color256(x));
-                        count += 1
-                    }      
-                }
-            },
-            SystemOptions::Update => {
-                terminal.show_message(style("Número do Todo :".to_string()).bold().green());
-                let number_todo = terminal.input()?;
-                let number = number_todo.parse::<usize>();
-                match number {
-                    Ok(number) => {
-                        let todo = todo_collection.get_todo(number);
-                        match todo {
-                            Some(_todo) => {
-                                terminal.show_message(style("Novo Todo :".to_string()).bold());
-                                let new_todo = terminal.input()?;
-                                todo_collection.update_todo(number, new_todo);
-                                terminal.show_message(style("Todo atualizado com Sucesso!!".to_string()).blue().bold())
-                            },
-                            None => terminal.show_message(style("Número de Todo Inválido!".to_string()).red().bold())
-                        }
-                    },
-                    Err(_) => terminal.show_error_msg(style("[ERRO] Digite um número e não uma letra!".to_string().to_uppercase()).red())
-                }
-            },
-            SystemOptions::Delete => {
-                terminal.show_message(style("Escolha o Todo que deseja deletar!".to_string()).bold().yellow());
-                let number_todo = terminal.input()?;
-                let number = number_todo.parse::<usize>();
-                match number {
-                    Ok(number) => {
-                        let todo = todo_collection.get_todo(number);
-                        match todo {
-                            Some(_todo) => {
-                                todo_collection.remove_todo(number);
-                                terminal.show_message(style("Todo removido com Sucesso!!".to_string()).white().bold())
-                            },
-                            None => terminal.show_message(style("Número de Todo Inválido!".to_string()).red().bold())
-                        }
-                    },     
-                    Err(_) => terminal.show_error_msg(style("[ERRO] Digite somente números!".to_string().to_uppercase()).red())
-            }
-            },
-            SystemOptions::Exit => {
-                terminal.show_message(style("ToDo Encerrado! 💤".to_string()).underlined().bold());
-                return Ok(())
-            },
-            SystemOptions::Other => return Ok(())
-        }
     }
 }
