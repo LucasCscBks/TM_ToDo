@@ -9,6 +9,7 @@ pub trait TodoStorage {
     fn add_todo(&mut self, todo: Todo);
     fn update_todo(&mut self, index: usize, message: String);
     fn remove_todo(&mut self, index:usize);
+    fn resolve_todo(&mut self, index: usize);
     fn get_todo(&mut self, index:usize) -> Option<&Todo>;
     fn get_todos(&mut self) -> Vec<Todo>;
 }
@@ -27,7 +28,7 @@ impl TodoStorage for Todos {
     }
 
     fn update_todo(&mut self, index: usize, message: String) {
-        self.todos[index -1] = Todo::new(message);
+        self.todos[index -1] = Todo::new(message, false);
     }
 
     fn remove_todo(&mut self, index:usize) {
@@ -39,6 +40,16 @@ impl TodoStorage for Todos {
             None
         } else {
             Some(&self.todos[index - 1])
+        }
+    }
+
+    fn resolve_todo(&mut self, index:usize) {
+        let todo = self.get_todo(index);
+        match todo {
+            Some(todo) => {
+                self.todos[index -1] = Todo::new(todo.message.clone(),true)
+            },
+            None => ()
         }
     }
 

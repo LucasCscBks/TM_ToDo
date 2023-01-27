@@ -13,6 +13,7 @@ pub enum SystemOptions {
     Add,
     List,
     Update,
+    Resolve,
     Delete,
     Exit,
     Other
@@ -26,7 +27,7 @@ pub trait UserInterface {
     fn show_error(&mut self, error: TerminalError);
     fn show_error_msg(&mut self, message: StyledObject<String>);
     fn show_message(&mut self, message: StyledObject<String>);
-    fn show_todos(&mut self, index: i32, message: StyledObject<&String>);
+    fn show_todos(&mut self, index: i32, message: StyledObject<&String>, resolved: bool);
 }
 
 impl Terminal {
@@ -51,10 +52,11 @@ impl UserInterface for Terminal {
     fn system_options(&mut self) -> Result<SystemOptions, TerminalError> {
         println!("{}", style("Bem vindo ao sistema de Todos! Escolha uma opção abaixo: ").green());
         println!(
-            "[{}|{}|{}|{}|{}]",
+            "[{}|{}|{}|{}|{}|{}]",
             style("Adicionar").bold().blue(), 
             style("Listar").bold().yellow(),
             style("Atualizar").bold().green(),
+            style("Resolver").bold().white(),
             style("Deletar").magenta().bold(),
             style("Sair").bold().red()
         );
@@ -62,13 +64,14 @@ impl UserInterface for Terminal {
         let mut res = self.input()?.to_lowercase();
         clear().expect("Falhou em limpar a tela");
 
-        while !matches!(&*res, "adicionar" | "listar" | "atualizar" | "sair" | "deletar") {
+        while !matches!(&*res, "adicionar" | "listar" | "atualizar" | "resolver" | "sair" | "deletar") {
             println!("{}", style("COMANDO ERRADO").red());
             println!(
-                "Digite {},{}, {},{} ou {}", 
+                "Digite {},{}, {},{}, {} ou {}", 
                 style("Adicionar").blue().bold(), 
                 style("Listar").yellow().bold(),
                 style("Atualizar").green().bold(),
+                style("Resolver").bold().white(),
                 style("Deletar").magenta().bold(),
                 style("Sair").red().bold()
             );
@@ -78,6 +81,7 @@ impl UserInterface for Terminal {
             "adicionar" => Ok(SystemOptions::Add),
             "listar" => Ok(SystemOptions::List),
             "atualizar" => Ok(SystemOptions::Update),
+            "resolver" => Ok(SystemOptions::Resolve),
             "deletar" => Ok(SystemOptions::Delete),
             "sair" => Ok(SystemOptions::Exit),
             _ => Ok(SystemOptions::Other)
@@ -90,7 +94,7 @@ impl UserInterface for Terminal {
         let todo_res = self.input()?;
         print!("{}", style("TODO ADICIONADO 👍 : ").bold().magenta());
         
-        Ok(Some(Todo::new(todo_res)))
+        Ok(Some(Todo::new(todo_res, false)))
     }
 
     fn show_todo(&mut self, todo: &Todo) -> Result<(), TerminalError> {
@@ -110,7 +114,11 @@ impl UserInterface for Terminal {
         println!("{}", message);
     }
 
-    fn show_todos(&mut self, index: i32, message: StyledObject<&String>) {
-        println!("{} : {}", index, message);
+    fn show_todos(&mut self, index: i32, message: StyledObject<&String>, resolved: bool) {
+        if resolved == false {
+            println!("{} : {} - {}", index, message, "🎯");
+        } else {
+            println!("{} : {} - {}", index, message, "✅");
+        }
     }
 }
