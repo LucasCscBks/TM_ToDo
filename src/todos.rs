@@ -28,7 +28,7 @@ impl TodoStorage for Todos {
     }
 
     fn update_todo(&mut self, index: usize, message: String) {
-        self.todos[index -1] = Todo::new(message, false);
+        self.todos[index -1].message = message;
     }
 
     fn remove_todo(&mut self, index:usize) {
@@ -44,13 +44,7 @@ impl TodoStorage for Todos {
     }
 
     fn resolve_todo(&mut self, index:usize) {
-        let todo = self.get_todo(index);
-        match todo {
-            Some(todo) => {
-                self.todos[index -1] = Todo::new(todo.message.clone(),true)
-            },
-            None => ()
-        }
+        self.todos[index -1].resolved = true;
     }
 
     fn get_todos(&mut self) -> Vec<Todo> {
