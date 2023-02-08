@@ -1,0 +1,1 @@
+Correr a noite atualizado   -false-jogar videogame    -true-futebol com os amigos    -true-comprar caneta   -false-
