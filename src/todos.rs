@@ -76,7 +76,7 @@ impl TodoStorage for Todos {
 
     async fn write_storage(&mut self) -> Result<(), TerminalError> {
         let content = self.todos.iter()
-            .map(|todo| format!("{} -{}-", todo.message, todo.resolved)).collect::<Vec<String>>();
+            .map(|todo| format!("{}-{}-", todo.message, todo.resolved)).collect::<Vec<String>>();
         write("session.txt", content.join("")).await.map_err(TerminalError::Stdout)?;
         Ok(())
     }
