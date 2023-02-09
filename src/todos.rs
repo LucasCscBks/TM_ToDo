@@ -33,13 +33,10 @@ impl TodoStorage for Todos {
         let file = read_to_string("session.txt").await;
         match file {
             Ok(file) => {
-                let mut text_todos: Vec<&str> = file.split("-").collect();
-                text_todos.pop();
-                let mut count = 0;
-                while count < text_todos.len() {
-                    let todo = Todo::new(text_todos[count].to_string(), text_todos[count + 1].contains("true"));
+                let text_todos: Vec<&str> = file.split("-").collect();
+                for chunk in text_todos.chunks_exact(2) {
+                    let todo = Todo::new(chunk[0].to_string(), chunk[1].contains("true"));
                     self.todos.push(todo);
-                    count +=2
                 }
             },
             Err(_err) => println!("Primeira sessão! Ainda não existe o arquivo de sessão!")
