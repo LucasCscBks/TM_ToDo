@@ -1,12 +1,13 @@
-use std::io::{Stdin, Stdout, Write};
+use tokio::io::{Stdin, Stdout, BufReader, AsyncBufReadExt};
+use async_trait::async_trait;
 use crate::terminalerror::TerminalError;
 use crate::todo::Todo;
 use console::{style, StyledObject};
 use clearscreen::clear;
 
 pub struct Terminal {
-    stdin: Stdin,
-    stdout: Stdout,
+    stdin: BufReader<Stdin>,
+    _stdout: Stdout,
 }
 
 pub enum SystemOptions {
@@ -19,37 +20,39 @@ pub enum SystemOptions {
     Other
 }
 
+#[async_trait]
 pub trait UserInterface {
-    fn input(&mut self) -> Result<String, TerminalError>;
-    fn system_options(&mut self) -> Result<SystemOptions, TerminalError>;
-    fn new_todo(&mut self) -> Result<Option<Todo>, TerminalError>;
-    fn show_todo(&mut self, todo: &Todo) -> Result<(), TerminalError>;
-    fn show_error(&mut self, error: TerminalError);
-    fn show_error_msg(&mut self, message: StyledObject<String>);
-    fn show_message(&mut self, message: StyledObject<String>);
-    fn show_todos(&mut self, index: i32, message: StyledObject<&String>, resolved: bool);
+    async fn input(&mut self) -> Result<String, TerminalError>;
+    async fn system_options(&mut self) -> Result<SystemOptions, TerminalError>;
+    async fn new_todo(&mut self) -> Result<Option<Todo>, TerminalError>;
+    async fn show_todo(&mut self, todo: &Todo) -> Result<(), TerminalError>;
+    async fn show_error(&mut self, error: TerminalError);
+    async fn show_error_msg(&mut self, message: StyledObject<String>);
+    async fn show_message(&mut self, message: StyledObject<String>);
+    async fn show_todos(&mut self, index: i32, message: StyledObject<&String>, resolved: bool);
 }
 
 impl Terminal {
     pub fn new() -> Self {
         Terminal {
-            stdin: std::io::stdin(),
-            stdout: std::io::stdout(),
+            stdin: BufReader::new(tokio::io::stdin()),
+            _stdout: tokio::io::stdout(),
         }
     }
 }
 
+#[async_trait]
 impl UserInterface for Terminal {
-    fn input(&mut self) -> Result<String, TerminalError> {
+    async fn input(&mut self) -> Result<String, TerminalError> {
         let mut buf: String = String::new();
-
-        match self.stdin.read_line(&mut buf) {
+        
+        match self.stdin.read_line(&mut buf).await {
             Ok(_) => Ok(buf.trim().to_string()),
             Err(error) => Err(TerminalError::Stdin(error))
         }
     }
     
-    fn system_options(&mut self) -> Result<SystemOptions, TerminalError> {
+    async fn system_options(&mut self) -> Result<SystemOptions, TerminalError> {
         println!("{}", style("Bem vindo ao sistema de Todos! Escolha uma opção abaixo: ").green());
         println!(
             "[{}|{}|{}|{}|{}|{}]",
@@ -61,7 +64,7 @@ impl UserInterface for Terminal {
             style("Sair").bold().red()
         );
 
-        let mut res = self.input()?.to_lowercase();
+        let mut res = self.input().await?.to_lowercase();
         clear().expect("Falhou em limpar a tela");
 
         while !matches!(&*res, "adicionar" | "listar" | "atualizar" | "resolver" | "sair" | "deletar") {
@@ -75,7 +78,7 @@ impl UserInterface for Terminal {
                 style("Deletar").magenta().bold(),
                 style("Sair").red().bold()
             );
-            res = self.input()?.to_lowercase();
+            res = self.input().await?.to_lowercase();
         }
         match res.trim() {
             "adicionar" => Ok(SystemOptions::Add),
@@ -88,33 +91,33 @@ impl UserInterface for Terminal {
         }
     }
 
-    fn new_todo(&mut self) -> Result<Option<Todo>, TerminalError> {
+    async fn new_todo(&mut self) -> Result<Option<Todo>, TerminalError> {
 
         println!("{}", style("Digite o ToDo que deseja criar: ").cyan());
-        let todo_res = self.input()?;
+        let todo_res = self.input().await?;
         print!("{}", style("TODO ADICIONADO 👍 : ").bold().magenta());
         
         Ok(Some(Todo::new(todo_res, false)))
     }
 
-    fn show_todo(&mut self, todo: &Todo) -> Result<(), TerminalError> {
-        let resolve = writeln!(self.stdout, "{}", style(&todo.message).italic().underlined().color256(105));
-        resolve.map_err(TerminalError::Stdout)
+    async fn show_todo(&mut self, todo: &Todo) -> Result<(), TerminalError> {
+        println!("{}", style(&todo.message).italic().underlined().color256(105));
+        Ok(())
     }
 
-    fn show_error(&mut self, error: TerminalError) {
+    async fn show_error(&mut self, error: TerminalError) {
         eprintln!("{}", error.error_type());
     }
 
-    fn show_error_msg(&mut self, message: StyledObject<String>) {
+    async fn show_error_msg(&mut self, message: StyledObject<String>) {
         println!("{}", message)
     }
 
-    fn show_message(&mut self, message: StyledObject<String>) {
+    async fn show_message(&mut self, message: StyledObject<String>) {
         println!("{}", message);
     }
 
-    fn show_todos(&mut self, index: i32, message: StyledObject<&String>, resolved: bool) {
+    async fn show_todos(&mut self, index: i32, message: StyledObject<&String>, resolved: bool) {
         if resolved == false {
             println!("{} : {} - {}", index, message, "🎯");
         } else {
