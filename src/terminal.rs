@@ -41,6 +41,12 @@ impl Terminal {
     }
 }
 
+impl Default for Terminal {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[async_trait]
 impl UserInterface for Terminal {
     async fn input(&mut self) -> Result<String, TerminalError> {
@@ -118,10 +124,10 @@ impl UserInterface for Terminal {
     }
 
     async fn show_todos(&mut self, index: i32, message: StyledObject<&String>, resolved: bool) {
-        if resolved == false {
-            println!("{} : {} - {}", index, message, "🎯");
+        if !resolved {
+            println!("{} : {} - 🎯", index, message);
         } else {
-            println!("{} : {} - {}", index, message, "✅");
+            println!("{} : {} - ✅", index, message);
         }
     }
 }

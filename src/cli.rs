@@ -62,7 +62,7 @@ impl TodoCli {
                                 let todo = self.todo_storage.get_todo(number);
                                 match todo.await {
                                     Some(todo) => {
-                                        if todo.resolved == true {
+                                        if todo.resolved {
                                             self.user_interface.show_message(style("Esse todo já foi resolvido e não é possível atualizar!!".to_uppercase().to_string()).red().bold()).await
                                         } else {
                                             self.user_interface.show_message(style("Novo Todo :".to_string()).bold()).await;
@@ -91,7 +91,7 @@ impl TodoCli {
                                 let todo = self.todo_storage.get_todo(number);
                                 match todo.await {
                                     Some(todo) => {
-                                        if todo.resolved == true {
+                                        if todo.resolved {
                                             self.user_interface.show_message(style("Esse todo já está resolvido!!".to_string()).red().bold()).await
                                         } else {
                                             self.todo_storage.resolve_todo(number).await;
