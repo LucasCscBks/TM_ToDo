@@ -27,13 +27,19 @@ impl Todos {
     }
 }
 
+impl Default for Todos {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[async_trait]
 impl TodoStorage for Todos {
     async fn read_storage(&mut self) {
         let file = read_to_string("session.txt").await;
         match file {
             Ok(file) => {
-                let text_todos: Vec<&str> = file.split("-").collect();
+                let text_todos: Vec<&str> = file.split('-').collect();
                 for chunk in text_todos.chunks_exact(2) {
                     let todo = Todo::new(chunk[0].to_string(), chunk[1].contains("true"));
                     self.todos.push(todo);
